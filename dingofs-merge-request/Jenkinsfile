@@ -4,11 +4,11 @@ pipeline {
         }
 
     stages {
-        stage('代码检出') {
-            steps {
-                checkout scm
-            }
-        }
+        // stage('代码检出') {
+        //     steps {
+        //         checkout scm
+        //     }
+        // }
 
         // stage('安装 Python 依赖') {
         //     steps {
@@ -22,6 +22,7 @@ pipeline {
             steps {
                 // sh 'exit 1'   // 返回非零，强制失败
                 echo "1234"
+                echo env.GIT_COMMIT
             }
         }
 
@@ -70,7 +71,7 @@ pipeline {
 def setGitHubStatus(String message, String state) {
     step([
         $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+        // reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
