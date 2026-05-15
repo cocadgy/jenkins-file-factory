@@ -4,11 +4,11 @@ pipeline {
         }
 
     stages {
-        // stage('代码检出') {
-        //     steps {
-        //         checkout scm
-        //     }
-        // }
+        stage('代码检出') {
+            steps {
+                checkout scm
+            }
+        }
 
         // stage('安装 Python 依赖') {
         //     steps {
