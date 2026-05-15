@@ -71,6 +71,7 @@ pipeline {
 def setGitHubStatus(String message, String state) {
     step([
         $class: "GitHubCommitStatusSetter",
+        commitSha: env.GIT_COMMIT,
         // reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
