@@ -78,13 +78,17 @@ pipeline {
 //         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
 //     ]);
 // }
+// def setGitHubStatus(String message, String state) {
+//     step([
+//         $class: "GitHubCommitStatusSetter",
+//         reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+//         commitShaSource: [$class: "ManuallyEnteredCommitShaSource", sha: env.GIT_COMMIT],
+//         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+//         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+//         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
+//     ]);
+// }
+
 def setGitHubStatus(String message, String state) {
-    step([
-        $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
-        commitShaSource: [$class: "ManuallyEnteredCommitShaSource", sha: env.GIT_COMMIT],
-        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
-        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-        statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
-    ]);
+    githubNotify context: 'ci/jenkins/pytest', description: message, status: state
 }
