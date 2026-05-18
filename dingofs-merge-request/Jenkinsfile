@@ -12,7 +12,7 @@ pipeline {
 
         stage('强制失败测试') {
             steps {
-                echo "1234"
+                sh 'exit 1'
                 echo "GIT_COMMIT: ${env.GIT_COMMIT}"
             }
         }
