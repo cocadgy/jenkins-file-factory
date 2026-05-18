@@ -1,3 +1,15 @@
+def setGitHubStatus(String message, String state) {
+    step([
+        $class: "GitHubCommitStatusSetter",
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+        // 显式指定commit来源，直接从环境变量或checkout信息获取，而不是依赖自动查找
+        commitShaSource: [$class: "BuildDataRevisionShaSource"],
+        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+        statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
+    ]);
+}
+
 pipeline {
     agent{
             label "jenkins_172.30.14.126"
@@ -35,7 +47,7 @@ pipeline {
         stage('强制失败测试') {
             steps {
                 // sh 'exit 1'   // 返回非零，强制失败
-                echo "1234"
+                echo "1234567"
                 echo env.GIT_COMMIT
             }
         }
@@ -91,15 +103,3 @@ pipeline {
 //         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
 //     ]);
 // }
-
-def setGitHubStatus(String message, String state) {
-    step([
-        $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
-        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
-        // 显式指定commit来源，直接从环境变量或checkout信息获取，而不是依赖自动查找
-        commitShaSource: [$class: "BuildDataRevisionShaSource"],
-        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-        statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
-    ]);
-}
