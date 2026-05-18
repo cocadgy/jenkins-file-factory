@@ -1,105 +1,65 @@
-def setGitHubStatus(String message, String state) {
-    step([
-        $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
-        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
-        // 显式指定commit来源，直接从环境变量或checkout信息获取，而不是依赖自动查找
-        commitShaSource: [$class: "BuildDataRevisionShaSource"],
-        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-        statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
-    ]);
-}
-
 pipeline {
-    agent{
-            label "jenkins_172.30.14.126"
-        }
+    agent {
+        label "jenkins_172.30.14.126"
+    }
 
     stages {
         stage('代码检出') {
             steps {
-                checkout scm
+                checkout scm   // 必须保留，否则Git元数据无法获取
             }
         }
 
-        // stage('安装 Python 依赖') {
-        //     steps {
-        //         sh '''
-        //             python3 -m pip install --upgrade pip
-        //             pip install pytest pytest-html pytest-cov
-        //         '''
-        //     }
-        // }
-        stage('Checkout and Get Commit Info') {
-            steps {
-                // 1. 显式检出项目代码仓库
-                checkout([$class: 'GitSCM', 
-                        branches: [[name: '*/main']], // 根据你的实际情况修改分支
-                        userRemoteConfigs: [[url: 'https://github.com/cocadgy/dingofs-automation-framwork.git']] // 替换为你的仓库地址
-                ])
-
-                // 2. 将 Commit SHA 存入环境变量
-                script {
-                    env.GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-                }
-        }
-}
         stage('强制失败测试') {
             steps {
-                // sh 'exit 1'   // 返回非零，强制失败
-                echo "1234567"
-                echo env.GIT_COMMIT
+                echo "1234"
+                echo "GIT_COMMIT: ${env.GIT_COMMIT}"
             }
         }
 
         stage('运行 pytest 测试') {
             steps {
-                // 运行测试，生成 JUnit 格式的测试报告（Jenkins 可读）
-                // sh '''
-                //     pytest --junitxml=report.xml --html=report.html --self-contained-html
-                // '''
                 echo "模拟 pytest 测试执行，生成 report.xml 和 report.html"
             }
-            // post {
-            //     always {
-            //         // 无论成功还是失败，都发布测试报告
-            //         junit 'report.xml'
-            //         publishHTML([
-            //             allowMissing: false,
-            //             alwaysLinkToLastBuild: true,
-            //             keepAll: true,
-            //             reportDir: '',
-            //             reportFiles: 'report.html',
-            //             reportName: 'Pytest HTML Report'
-            //         ])
-            //     }
-            // }
         }
     }
 
     post {
         success {
-            // 测试通过 → 通知 GitHub 状态为成功
-            // setGitHubStatus("所有 pytest 测试通过", "SUCCESS")
-            setGitHubStatus("所有 pytest 测试通过", "SUCCESS", "https://github.com/cocadgy/dingofs-automation-framwork", env.GIT_COMMIT)
+            script {
+                step([
+                    $class: "GitHubCommitStatusSetter",
+                    reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+                    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+                    commitShaSource: [$class: "BuildDataRevisionShaSource"],
+                    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+                    statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "所有 pytest 测试通过", state: "SUCCESS"]]]
+                ])
+            }
         }
         failure {
-            // 测试失败 → 通知 GitHub 状态为失败
-            setGitHubStatus("pytest 测试失败，请检查报告", "FAILURE")
+            script {
+                step([
+                    $class: "GitHubCommitStatusSetter",
+                    reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+                    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+                    commitShaSource: [$class: "BuildDataRevisionShaSource"],
+                    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+                    statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "pytest 测试失败，请检查报告", state: "FAILURE"]]]
+                ])
+            }
         }
         aborted {
-            // 任务被取消 → 通知 GitHub 状态为 pending（可选）
-            setGitHubStatus("构建被取消", "PENDING")
+            script {
+                step([
+                    $class: "GitHubCommitStatusSetter",
+                    reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+                    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+                    commitShaSource: [$class: "BuildDataRevisionShaSource"],
+                    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+                    statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "构建被取消", state: "PENDING"]]]
+                ])
+            }
         }
     }
 }
-// 向 GitHub 上报状态的核心函数
-// def setGitHubStatus(String message, String state) {
-//     step([
-//         $class: "GitHubCommitStatusSetter",
-//         reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
-//         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
-//         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-//         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
-//     ]);
-// }
