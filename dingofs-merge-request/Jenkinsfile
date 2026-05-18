@@ -25,41 +25,40 @@ pipeline {
     }
 
     post {
-        success {
-            script {
-                step([
-                    $class: "GitHubCommitStatusSetter",
-                    reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
-                    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
-                    commitShaSource: [$class: "BuildDataRevisionShaSource"],
-                    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-                    statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "所有 pytest 测试通过", state: "SUCCESS"]]]
-                ])
-            }
-        }
-        failure {
-            script {
-                step([
-                    $class: "GitHubCommitStatusSetter",
-                    reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
-                    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
-                    commitShaSource: [$class: "BuildDataRevisionShaSource"],
-                    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-                    statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "pytest 测试失败，请检查报告", state: "FAILURE"]]]
-                ])
-            }
-        }
-        aborted {
-            script {
-                step([
-                    $class: "GitHubCommitStatusSetter",
-                    reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
-                    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
-                    commitShaSource: [$class: "BuildDataRevisionShaSource"],
-                    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-                    statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "构建被取消", state: "PENDING"]]]
-                ])
-            }
+    success {
+        script {
+            step([
+                $class: "GitHubCommitStatusSetter",
+                reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+                contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+                // 关键修改：手动指定 commit SHA
+                commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.GIT_COMMIT],
+                // 暂时移除 errorHandlers，让真实错误浮现（构建失败而非 UNSTABLE）
+                statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "所有 pytest 测试通过", state: "SUCCESS"]]]
+            ])
         }
     }
+    failure {
+        script {
+            step([
+                $class: "GitHubCommitStatusSetter",
+                reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+                contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+                commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.GIT_COMMIT],
+                statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "pytest 测试失败，请检查报告", state: "FAILURE"]]]
+            ])
+        }
+    }
+    aborted {
+        script {
+            step([
+                $class: "GitHubCommitStatusSetter",
+                reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/cocadgy/dingofs-automation-framwork"],
+                contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/pytest"],
+                commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.GIT_COMMIT],
+                statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: "构建被取消", state: "PENDING"]]]
+            ])
+        }
+    }
+}
 }
